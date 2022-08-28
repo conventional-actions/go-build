@@ -1,0 +1,33 @@
+name: 'go-build'
+description: 'Build Go binaries'
+author: 'Conventional Actions'
+inputs:
+  package:
+    required: false
+    description: 'package to build'
+    default: ./cmd/*
+  platforms:
+    required: false
+    description: 'comma-separated list of platforms to build'
+  tags:
+    required: false
+    description: 'comma-separated list of build tags to pass to go compiler'
+  buildvcs:
+    required: false
+    description: 'whether to stamp binaries with version control information'
+    default: auto
+  buildmode:
+    required: false
+    description: 'which kind of object file is to be built'
+    default: default
+  trimpath:
+    required: false
+    description: 'remove all file system paths from the resulting executable'
+    default: 'true'
+runs:
+  using: 'node16'
+  pre: 'dist/setup/index.js'
+  main: 'dist/main/index.js'
+branding:
+  icon: target
+  color: purple
