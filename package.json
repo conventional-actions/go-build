@@ -5,7 +5,7 @@
   "description": "go-build GitHub action",
   "main": "dist/main/index.js",
   "scripts": {
-    "build": "ncc build --source-map --license licenses.txt -o dist/setup src/setup.ts && ncc build --source-map --license licenses.txt -o dist/main src/main.ts",
+    "build": "ncc build --source-map --license licenses.txt -o dist/main src/main.ts",
     "format": "prettier --write '**/*.ts'",
     "format-check": "prettier --check '**/*.ts'",
     "lint": "eslint src/**/*.ts",
