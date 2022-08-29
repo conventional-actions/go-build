@@ -2,32 +2,9 @@ import * as core from '@actions/core'
 import * as glob from '@actions/glob'
 import * as exec from '@actions/exec'
 import * as artifact from '@actions/artifact'
-import {parseInputFiles} from './utils'
+import {parseInputFiles, getDefaultPlatformArch} from './utils'
 import path from 'path'
-import os from 'os'
 import fs from 'fs'
-
-function getDefaultPlatformArch(): string {
-  let osPlatform: string = os.platform()
-  switch (osPlatform) {
-    case 'win32':
-      osPlatform = 'windows'
-      break
-
-    case 'sunos':
-      osPlatform = 'solaris'
-      break
-  }
-  core.debug(`osPlatform = ${osPlatform}`)
-
-  let osArch: string = os.arch()
-  if (osArch === 'x64') {
-    osArch = 'amd64'
-  }
-  core.debug(`osArch = ${osArch}`)
-
-  return `${osPlatform}/${osArch}`
-}
 
 async function run(): Promise<void> {
   try {

@@ -14631,26 +14631,7 @@ const exec = __importStar(__nccwpck_require__(1514));
 const artifact = __importStar(__nccwpck_require__(2605));
 const utils_1 = __nccwpck_require__(1314);
 const path_1 = __importDefault(__nccwpck_require__(1017));
-const os_1 = __importDefault(__nccwpck_require__(2037));
 const fs_1 = __importDefault(__nccwpck_require__(7147));
-function getDefaultPlatformArch() {
-    let osPlatform = os_1.default.platform();
-    switch (osPlatform) {
-        case 'win32':
-            osPlatform = 'windows';
-            break;
-        case 'sunos':
-            osPlatform = 'solaris';
-            break;
-    }
-    core.debug(`osPlatform = ${osPlatform}`);
-    let osArch = os_1.default.arch();
-    if (osArch === 'x64') {
-        osArch = 'amd64';
-    }
-    core.debug(`osArch = ${osArch}`);
-    return `${osPlatform}/${osArch}`;
-}
 async function run() {
     try {
         const packages = (0, utils_1.parseInputFiles)(core.getInput('package') || './cmd/*');
@@ -14661,7 +14642,7 @@ async function run() {
         });
         const paths = await pathsGlobber.glob();
         core.debug(`paths = ${paths}`);
-        const platforms = (0, utils_1.parseInputFiles)(core.getInput('platforms') || getDefaultPlatformArch());
+        const platforms = (0, utils_1.parseInputFiles)(core.getInput('platforms') || (0, utils_1.getDefaultPlatformArch)());
         core.debug(`platforms = ${platforms}`);
         const tags = (0, utils_1.parseInputFiles)(core.getInput('tags') || '');
         core.debug(`tags = ${tags}`);
@@ -14767,10 +14748,15 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.unmatchedPatterns = exports.paths = exports.parseInputFiles = void 0;
+exports.getDefaultPlatformArch = exports.unmatchedPatterns = exports.paths = exports.parseInputFiles = void 0;
 const glob = __importStar(__nccwpck_require__(1957));
 const fs_1 = __nccwpck_require__(7147);
+const os_1 = __importDefault(__nccwpck_require__(2037));
+const core = __importStar(__nccwpck_require__(2186));
 const parseInputFiles = (files) => {
     return files.split(/\r?\n/).reduce((acc, line) => acc
         .concat(line.split(','))
@@ -14792,6 +14778,25 @@ const unmatchedPatterns = (patterns) => {
     }, []);
 };
 exports.unmatchedPatterns = unmatchedPatterns;
+const getDefaultPlatformArch = () => {
+    let osPlatform = os_1.default.platform();
+    switch (osPlatform) {
+        case 'win32':
+            osPlatform = 'windows';
+            break;
+        case 'sunos':
+            osPlatform = 'solaris';
+            break;
+    }
+    core.debug(`osPlatform = ${osPlatform}`);
+    let osArch = os_1.default.arch();
+    if (osArch === 'x64') {
+        osArch = 'amd64';
+    }
+    core.debug(`osArch = ${osArch}`);
+    return `${osPlatform}/${osArch}`;
+};
+exports.getDefaultPlatformArch = getDefaultPlatformArch;
 
 
 /***/ }),
