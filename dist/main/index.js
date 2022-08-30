@@ -6386,6 +6386,63 @@ function copyFile(srcFile, destFile, force) {
 
 /***/ }),
 
+/***/ 2539:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.unmatchedPatterns = exports.paths = exports.parseMultiInput = void 0;
+const glob = __importStar(__nccwpck_require__(1957));
+const fs_1 = __nccwpck_require__(7147);
+function parseMultiInput(files) {
+    return files.split(/\r?\n/).reduce((acc, line) => acc
+        .concat(line.split(','))
+        .filter(pat => pat)
+        .map(pat => pat.trim()), []);
+}
+exports.parseMultiInput = parseMultiInput;
+function paths(patterns) {
+    return patterns.reduce((acc, pattern) => {
+        return acc.concat(glob.sync(pattern).filter(path => (0, fs_1.statSync)(path).isFile()));
+    }, []);
+}
+exports.paths = paths;
+function unmatchedPatterns(patterns) {
+    return patterns.reduce((acc, pattern) => {
+        return acc.concat(glob.sync(pattern).filter(path => (0, fs_1.statSync)(path).isFile()).length === 0
+            ? [pattern]
+            : []);
+    }, []);
+}
+exports.unmatchedPatterns = unmatchedPatterns;
+
+
+/***/ }),
+
 /***/ 9417:
 /***/ ((module) => {
 
@@ -14593,6 +14650,61 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 6373:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getConfig = void 0;
+const toolkit_1 = __nccwpck_require__(2539);
+const core = __importStar(__nccwpck_require__(2186));
+const glob = __importStar(__nccwpck_require__(8090));
+const utils_1 = __nccwpck_require__(1314);
+async function getConfig() {
+    const packages = (0, toolkit_1.parseMultiInput)(core.getInput('package') || './cmd/*');
+    const pathsGlobber = await glob.create(packages.join('\n'), {
+        matchDirectories: true,
+        implicitDescendants: false
+    });
+    return {
+        packages,
+        paths: await pathsGlobber.glob(),
+        platforms: (0, toolkit_1.parseMultiInput)(core.getInput('platforms') || (0, utils_1.getDefaultPlatformArch)()),
+        tags: (0, toolkit_1.parseMultiInput)(core.getInput('tags') || ''),
+        buildvcs: core.getInput('buildvcs') || 'auto',
+        buildmode: core.getInput('buildmode') || 'default',
+        trimpath: core.getInput('trimpath') !== 'false'
+    };
+}
+exports.getConfig = getConfig;
+
+
+/***/ }),
+
 /***/ 399:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -14629,43 +14741,26 @@ const core = __importStar(__nccwpck_require__(2186));
 const glob = __importStar(__nccwpck_require__(8090));
 const exec = __importStar(__nccwpck_require__(1514));
 const artifact = __importStar(__nccwpck_require__(2605));
-const utils_1 = __nccwpck_require__(1314);
 const path_1 = __importDefault(__nccwpck_require__(1017));
 const fs_1 = __importDefault(__nccwpck_require__(7147));
+const config_1 = __nccwpck_require__(6373);
 async function run() {
     try {
-        const packages = (0, utils_1.parseInputFiles)(core.getInput('package') || './cmd/*');
-        core.debug(`packages = ${packages}`);
-        const pathsGlobber = await glob.create(packages.join('\n'), {
-            matchDirectories: true,
-            implicitDescendants: false
-        });
-        const paths = await pathsGlobber.glob();
-        core.debug(`paths = ${paths}`);
-        const platforms = (0, utils_1.parseInputFiles)(core.getInput('platforms') || (0, utils_1.getDefaultPlatformArch)());
-        core.debug(`platforms = ${platforms}`);
-        const tags = (0, utils_1.parseInputFiles)(core.getInput('tags') || '');
-        core.debug(`tags = ${tags}`);
-        const buildvcs = core.getInput('buildvcs') || 'auto';
-        core.debug(`buildvcs = ${buildvcs}`);
-        const buildmode = core.getInput('buildmode') || 'default';
-        core.debug(`buildmode = ${buildmode}`);
-        const trimpath = core.getInput('trimpath') !== 'false';
-        core.debug(`trimpath = ${trimpath}`);
+        const config = await (0, config_1.getConfig)();
         let args = ['build'];
-        if (trimpath) {
+        if (config.trimpath) {
             args = args.concat('-trimpath');
         }
-        args = args.concat(`-buildmode=${buildmode}`);
-        args = args.concat(`-buildvcs=${buildvcs}`);
-        if (tags && tags.length) {
-            args = args.concat('-tags', tags.join(','));
+        args = args.concat(`-buildmode=${config.buildmode}`);
+        args = args.concat(`-buildvcs=${config.buildvcs}`);
+        if (config.tags && config.tags.length) {
+            args = args.concat('-tags', config.tags.join(','));
         }
         core.debug(`args = ${args}`);
-        for (const platform of platforms) {
+        for (const platform of config.platforms) {
             core.debug(`platform = ${platform}`);
             const [osPlatform, osArch] = platform.split('/');
-            for (let pkg of paths) {
+            for (let pkg of config.paths) {
                 if (path_1.default.basename(pkg) === '...') {
                     pkg = path_1.default.dirname(pkg);
                 }
@@ -14689,7 +14784,7 @@ async function run() {
                 });
             }
         }
-        for (const platform of platforms) {
+        for (const platform of config.platforms) {
             core.debug(`platform = ${platform}`);
             const [osPlatform, osArch] = platform.split('/');
             const artifactsGlobber = await glob.create(`./.build/${osPlatform}-${osArch}/*`, {
@@ -14752,32 +14847,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getDefaultPlatformArch = exports.unmatchedPatterns = exports.paths = exports.parseInputFiles = void 0;
-const glob = __importStar(__nccwpck_require__(1957));
-const fs_1 = __nccwpck_require__(7147);
+exports.getDefaultPlatformArch = void 0;
 const os_1 = __importDefault(__nccwpck_require__(2037));
 const core = __importStar(__nccwpck_require__(2186));
-const parseInputFiles = (files) => {
-    return files.split(/\r?\n/).reduce((acc, line) => acc
-        .concat(line.split(','))
-        .filter(pat => pat)
-        .map(pat => pat.trim()), []);
-};
-exports.parseInputFiles = parseInputFiles;
-const paths = (patterns) => {
-    return patterns.reduce((acc, pattern) => {
-        return acc.concat(glob.sync(pattern).filter(path => (0, fs_1.statSync)(path).isFile()));
-    }, []);
-};
-exports.paths = paths;
-const unmatchedPatterns = (patterns) => {
-    return patterns.reduce((acc, pattern) => {
-        return acc.concat(glob.sync(pattern).filter(path => (0, fs_1.statSync)(path).isFile()).length === 0
-            ? [pattern]
-            : []);
-    }, []);
-};
-exports.unmatchedPatterns = unmatchedPatterns;
 const getDefaultPlatformArch = () => {
     let osPlatform = os_1.default.platform();
     switch (osPlatform) {

@@ -2,59 +2,34 @@ import * as core from '@actions/core'
 import * as glob from '@actions/glob'
 import * as exec from '@actions/exec'
 import * as artifact from '@actions/artifact'
-import {parseInputFiles, getDefaultPlatformArch} from './utils'
 import path from 'path'
 import fs from 'fs'
+import {getConfig} from './config'
 
 async function run(): Promise<void> {
   try {
-    const packages = parseInputFiles(core.getInput('package') || './cmd/*')
-    core.debug(`packages = ${packages}`)
-
-    const pathsGlobber = await glob.create(packages.join('\n'), {
-      matchDirectories: true,
-      implicitDescendants: false
-    })
-    const paths = await pathsGlobber.glob()
-    core.debug(`paths = ${paths}`)
-
-    const platforms = parseInputFiles(
-      core.getInput('platforms') || getDefaultPlatformArch()
-    )
-    core.debug(`platforms = ${platforms}`)
-
-    const tags = parseInputFiles(core.getInput('tags') || '')
-    core.debug(`tags = ${tags}`)
-
-    const buildvcs = core.getInput('buildvcs') || 'auto'
-    core.debug(`buildvcs = ${buildvcs}`)
-
-    const buildmode = core.getInput('buildmode') || 'default'
-    core.debug(`buildmode = ${buildmode}`)
-
-    const trimpath = core.getInput('trimpath') !== 'false'
-    core.debug(`trimpath = ${trimpath}`)
+    const config = await getConfig()
 
     let args = ['build']
-    if (trimpath) {
+    if (config.trimpath) {
       args = args.concat('-trimpath')
     }
 
-    args = args.concat(`-buildmode=${buildmode}`)
-    args = args.concat(`-buildvcs=${buildvcs}`)
+    args = args.concat(`-buildmode=${config.buildmode}`)
+    args = args.concat(`-buildvcs=${config.buildvcs}`)
 
-    if (tags && tags.length) {
-      args = args.concat('-tags', tags.join(','))
+    if (config.tags && config.tags.length) {
+      args = args.concat('-tags', config.tags.join(','))
     }
 
     core.debug(`args = ${args}`)
 
-    for (const platform of platforms) {
+    for (const platform of config.platforms) {
       core.debug(`platform = ${platform}`)
 
       const [osPlatform, osArch] = platform.split('/')
 
-      for (let pkg of paths) {
+      for (let pkg of config.paths) {
         if (path.basename(pkg) === '...') {
           pkg = path.dirname(pkg)
         }
@@ -88,7 +63,7 @@ async function run(): Promise<void> {
       }
     }
 
-    for (const platform of platforms) {
+    for (const platform of config.platforms) {
       core.debug(`platform = ${platform}`)
 
       const [osPlatform, osArch] = platform.split('/')
