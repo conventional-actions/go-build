@@ -23,6 +23,7 @@ async function run(): Promise<void> {
     }
 
     core.debug(`args = ${args}`)
+    let outputs: string[] = []
 
     for (const platform of config.platforms) {
       core.debug(`platform = ${platform}`)
@@ -53,6 +54,8 @@ async function run(): Promise<void> {
 
         core.info(`Compiling ${pkg} to ${binary}`)
 
+        outputs = outputs.concat(`./.build/${osPlatform}-${osArch}/${binary}`)
+
         await exec.exec(
           'go',
           args.concat('-o', `./.build/${osPlatform}-${osArch}/${binary}`, pkg),
@@ -62,6 +65,10 @@ async function run(): Promise<void> {
         )
       }
     }
+
+    core.setOutput('outputs', outputs.join(','))
+
+    let outputArtifacts: string[] = []
 
     for (const platform of config.platforms) {
       core.debug(`platform = ${platform}`)
@@ -92,9 +99,11 @@ async function run(): Promise<void> {
               retentionDays: 1
             }
           )
-        core.info(result.artifactItems.join('\n'))
+        outputArtifacts = artifacts.concat(result.artifactItems)
       }
     }
+
+    core.setOutput('artifacts', outputArtifacts.join(','))
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message)
   }

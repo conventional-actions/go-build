@@ -14757,6 +14757,7 @@ async function run() {
             args = args.concat('-tags', config.tags.join(','));
         }
         core.debug(`args = ${args}`);
+        let outputs = [];
         for (const platform of config.platforms) {
             core.debug(`platform = ${platform}`);
             const [osPlatform, osArch] = platform.split('/');
@@ -14779,11 +14780,14 @@ async function run() {
                 env['GOOS'] = osPlatform;
                 env['GOARCH'] = osArch;
                 core.info(`Compiling ${pkg} to ${binary}`);
+                outputs = outputs.concat(`./.build/${osPlatform}-${osArch}/${binary}`);
                 await exec.exec('go', args.concat('-o', `./.build/${osPlatform}-${osArch}/${binary}`, pkg), {
                     env
                 });
             }
         }
+        core.setOutput('outputs', outputs.join(','));
+        let outputArtifacts = [];
         for (const platform of config.platforms) {
             core.debug(`platform = ${platform}`);
             const [osPlatform, osArch] = platform.split('/');
@@ -14801,9 +14805,10 @@ async function run() {
                     continueOnError: false,
                     retentionDays: 1
                 });
-                core.info(result.artifactItems.join('\n'));
+                outputArtifacts = artifacts.concat(result.artifactItems);
             }
         }
+        core.setOutput('artifacts', outputArtifacts.join(','));
     }
     catch (error) {
         if (error instanceof Error)

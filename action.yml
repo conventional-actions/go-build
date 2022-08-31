@@ -24,6 +24,11 @@ inputs:
     required: false
     description: 'remove all file system paths from the resulting executable'
     default: 'true'
+outputs:
+  outputs:
+    description: 'list of output binaries'
+  artifacts:
+    description: 'list of artifacts produced by the action'
 runs:
   using: 'node16'
   main: 'dist/main/index.js'

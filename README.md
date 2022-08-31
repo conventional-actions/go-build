@@ -23,7 +23,10 @@ To use the GitHub Action, add the following to your job:
 
 ### Outputs
 
-No outputs.
+| Name        | Description                              |
+|-------------|------------------------------------------|
+| `outputs`   | comma-separated list of output binaries  |
+| `artifacts` | comma-separated list of output artifacts |
 
 ### Example
 
