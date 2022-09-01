@@ -24,6 +24,26 @@ inputs:
     required: false
     description: 'remove all file system paths from the resulting executable'
     default: 'true'
+  ldflags:
+    required: false
+    description: 'flags to pass to the linker'
+    default: '-d -s -w'
+  cgo-enabled:
+    required: false
+    description: 'set to true to enable cgo'
+    default: ''
+  goprivate:
+    required: false
+    description: 'value of GOPRIVATE'
+    default: ''
+  goproxy:
+    required: false
+    description: 'value of GOPROXY'
+    default: ''
+  gosumdb:
+    required: false
+    description: 'value of GOSUMDB'
+    default: ''
 outputs:
   outputs:
     description: 'list of output binaries'

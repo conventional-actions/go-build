@@ -9,6 +9,7 @@ import {getConfig} from './config'
 async function run(): Promise<void> {
   try {
     const config = await getConfig()
+    core.debug(`config = ${JSON.stringify(config)}`)
 
     let args = ['build']
     if (config.trimpath) {
@@ -17,6 +18,7 @@ async function run(): Promise<void> {
 
     args = args.concat(`-buildmode=${config.buildmode}`)
     args = args.concat(`-buildvcs=${config.buildvcs}`)
+    args = args.concat(`-ldflags=${config.ldflags}`)
 
     if (config.tags && config.tags.length) {
       args = args.concat('-tags', config.tags.join(','))
@@ -31,6 +33,8 @@ async function run(): Promise<void> {
       const [osPlatform, osArch] = platform.split('/')
 
       for (let pkg of config.paths) {
+        core.debug(`path = ${pkg}`)
+
         if (path.basename(pkg) === '...') {
           pkg = path.dirname(pkg)
         }
@@ -51,6 +55,10 @@ async function run(): Promise<void> {
         const env = process.env as {[key: string]: string}
         env['GOOS'] = osPlatform
         env['GOARCH'] = osArch
+        env['CGO_ENABLED'] = config.cgo_enabled ? '1' : '0'
+        env['GOPRIVATE'] = config.goprivate
+        env['GOPROXY'] = config.goproxy
+        env['GOSUMDB'] = config.gosumdb
 
         core.info(`Compiling ${pkg} to ${binary}`)
 

@@ -14686,18 +14686,26 @@ const glob = __importStar(__nccwpck_require__(8090));
 const utils_1 = __nccwpck_require__(1314);
 async function getConfig() {
     const packages = (0, toolkit_1.parseMultiInput)(core.getInput('package') || './cmd/*');
+    core.debug(`packages = ${packages}`);
     const pathsGlobber = await glob.create(packages.join('\n'), {
         matchDirectories: true,
         implicitDescendants: false
     });
+    const paths = await pathsGlobber.glob();
+    core.debug(`paths = ${paths}`);
     return {
         packages,
-        paths: await pathsGlobber.glob(),
+        paths,
         platforms: (0, toolkit_1.parseMultiInput)(core.getInput('platforms') || (0, utils_1.getDefaultPlatformArch)()),
         tags: (0, toolkit_1.parseMultiInput)(core.getInput('tags') || ''),
         buildvcs: core.getInput('buildvcs') || 'auto',
         buildmode: core.getInput('buildmode') || 'default',
-        trimpath: core.getInput('trimpath') !== 'false'
+        trimpath: core.getInput('trimpath') !== 'false',
+        cgo_enabled: core.getInput('cgo-enabled') === 'true' || process.env['CGO_ENABLED'] === '1',
+        ldflags: core.getInput('ldflags') || process.env['GO_LDFLAGS'] || '-d -s -w',
+        goprivate: core.getInput('goprivate') || process.env['GOPRIVATE'] || '',
+        goproxy: core.getInput('goproxy') || process.env['GOPROXY'] || 'direct',
+        gosumdb: core.getInput('gosumdb') || process.env['GOSUMDB'] || 'off'
     };
 }
 exports.getConfig = getConfig;
@@ -14747,12 +14755,14 @@ const config_1 = __nccwpck_require__(6373);
 async function run() {
     try {
         const config = await (0, config_1.getConfig)();
+        core.debug(`config = ${JSON.stringify(config)}`);
         let args = ['build'];
         if (config.trimpath) {
             args = args.concat('-trimpath');
         }
         args = args.concat(`-buildmode=${config.buildmode}`);
         args = args.concat(`-buildvcs=${config.buildvcs}`);
+        args = args.concat(`-ldflags=${config.ldflags}`);
         if (config.tags && config.tags.length) {
             args = args.concat('-tags', config.tags.join(','));
         }
@@ -14762,6 +14772,7 @@ async function run() {
             core.debug(`platform = ${platform}`);
             const [osPlatform, osArch] = platform.split('/');
             for (let pkg of config.paths) {
+                core.debug(`path = ${pkg}`);
                 if (path_1.default.basename(pkg) === '...') {
                     pkg = path_1.default.dirname(pkg);
                 }
@@ -14779,6 +14790,10 @@ async function run() {
                 const env = process.env;
                 env['GOOS'] = osPlatform;
                 env['GOARCH'] = osArch;
+                env['CGO_ENABLED'] = config.cgo_enabled ? '1' : '0';
+                env['GOPRIVATE'] = config.goprivate;
+                env['GOPROXY'] = config.goproxy;
+                env['GOSUMDB'] = config.gosumdb;
                 core.info(`Compiling ${pkg} to ${binary}`);
                 outputs = outputs.concat(`./.build/${osPlatform}-${osArch}/${binary}`);
                 await exec.exec('go', args.concat('-o', `./.build/${osPlatform}-${osArch}/${binary}`, pkg), {
