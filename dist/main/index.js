@@ -14701,7 +14701,8 @@ async function getConfig() {
         buildvcs: core.getInput('buildvcs') || 'auto',
         buildmode: core.getInput('buildmode') || 'default',
         trimpath: core.getInput('trimpath') !== 'false',
-        cgo_enabled: core.getInput('cgo-enabled') === 'true' || process.env['CGO_ENABLED'] === '1',
+        cgo_enabled: core.getInput('cgo-enabled') === 'true' ||
+            process.env['CGO_ENABLED'] === '1',
         ldflags: core.getInput('ldflags') || process.env['GO_LDFLAGS'] || '-d -s -w',
         goprivate: core.getInput('goprivate') || process.env['GOPRIVATE'] || '',
         goproxy: core.getInput('goproxy') || process.env['GOPROXY'] || 'direct',
