@@ -3,8 +3,8 @@ import * as glob from '@actions/glob'
 import * as exec from '@actions/exec'
 import * as artifact from '@actions/artifact'
 import path from 'path'
-import fs from 'fs'
 import {getConfig} from './config'
+import {goBuild} from './utils'
 
 async function run(): Promise<void> {
   try {
@@ -32,52 +32,23 @@ async function run(): Promise<void> {
     for (const platform of config.platforms) {
       core.debug(`platform = ${platform}`)
 
-      const [osPlatform, osArch] = platform.split('/')
-
-      for (let pkg of config.paths) {
-        core.debug(`path = ${pkg}`)
-
-        if (path.basename(pkg) === '...') {
-          pkg = path.dirname(pkg)
+      if (config.paths && config.paths.length) {
+        for (const pkg of config.paths) {
+          outputs = outputs.concat(
+            await goBuild(pkg, args, platform, config, true)
+          )
         }
-
-        const stat = fs.statSync(pkg.toString())
-        if (stat.isFile()) {
-          pkg = path.dirname(pkg)
-        } else if (!stat.isDirectory()) {
-          core.error(`path ${pkg} does not exist`)
-          return
+      } else {
+        for (const pkg of config.packages) {
+          await goBuild(pkg, args, platform, config, false)
         }
-
-        core.debug(`pkg = ${pkg}`)
-        const binary = path.basename(pkg)
-
-        core.debug(`binary = ${binary}`)
-
-        const env = process.env as {[key: string]: string}
-        env['GOOS'] = osPlatform
-        env['GOARCH'] = osArch
-        env['CGO_ENABLED'] = config.cgo_enabled ? '1' : '0'
-        env['GOPRIVATE'] = config.goprivate
-        env['GOPROXY'] = config.goproxy
-        env['GOSUMDB'] = config.gosumdb
-
-        core.info(`Compiling ${pkg} to ${binary}`)
-
-        outputs = outputs.concat(`./.build/${osPlatform}-${osArch}/${binary}`)
-
-        await exec.exec(
-          'go',
-          args.concat('-o', `./.build/${osPlatform}-${osArch}/${binary}`, pkg),
-          {
-            env
-          }
-        )
       }
     }
 
     if (outputs && outputs.length) {
       core.setOutput('outputs', outputs.join(','))
+    } else {
+      return
     }
 
     let outputArtifacts: string[] = []

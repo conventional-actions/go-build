@@ -3,7 +3,7 @@ import * as core from '@actions/core'
 import * as glob from '@actions/glob'
 import {getDefaultPlatformArch} from './utils'
 
-type Config = {
+export type Config = {
   packages: string[]
   paths: string[]
   platforms: string[]

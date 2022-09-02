@@ -14751,8 +14751,8 @@ const glob = __importStar(__nccwpck_require__(8090));
 const exec = __importStar(__nccwpck_require__(1514));
 const artifact = __importStar(__nccwpck_require__(2605));
 const path_1 = __importDefault(__nccwpck_require__(1017));
-const fs_1 = __importDefault(__nccwpck_require__(7147));
 const config_1 = __nccwpck_require__(6373);
+const utils_1 = __nccwpck_require__(1314);
 async function run() {
     try {
         const config = await (0, config_1.getConfig)();
@@ -14772,39 +14772,22 @@ async function run() {
         let outputs = [];
         for (const platform of config.platforms) {
             core.debug(`platform = ${platform}`);
-            const [osPlatform, osArch] = platform.split('/');
-            for (let pkg of config.paths) {
-                core.debug(`path = ${pkg}`);
-                if (path_1.default.basename(pkg) === '...') {
-                    pkg = path_1.default.dirname(pkg);
+            if (config.paths && config.paths.length) {
+                for (const pkg of config.paths) {
+                    outputs = outputs.concat(await (0, utils_1.goBuild)(pkg, args, platform, config, true));
                 }
-                const stat = fs_1.default.statSync(pkg.toString());
-                if (stat.isFile()) {
-                    pkg = path_1.default.dirname(pkg);
+            }
+            else {
+                for (const pkg of config.packages) {
+                    await (0, utils_1.goBuild)(pkg, args, platform, config, false);
                 }
-                else if (!stat.isDirectory()) {
-                    core.error(`path ${pkg} does not exist`);
-                    return;
-                }
-                core.debug(`pkg = ${pkg}`);
-                const binary = path_1.default.basename(pkg);
-                core.debug(`binary = ${binary}`);
-                const env = process.env;
-                env['GOOS'] = osPlatform;
-                env['GOARCH'] = osArch;
-                env['CGO_ENABLED'] = config.cgo_enabled ? '1' : '0';
-                env['GOPRIVATE'] = config.goprivate;
-                env['GOPROXY'] = config.goproxy;
-                env['GOSUMDB'] = config.gosumdb;
-                core.info(`Compiling ${pkg} to ${binary}`);
-                outputs = outputs.concat(`./.build/${osPlatform}-${osArch}/${binary}`);
-                await exec.exec('go', args.concat('-o', `./.build/${osPlatform}-${osArch}/${binary}`, pkg), {
-                    env
-                });
             }
         }
         if (outputs && outputs.length) {
             core.setOutput('outputs', outputs.join(','));
+        }
+        else {
+            return;
         }
         let outputArtifacts = [];
         for (const platform of config.platforms) {
@@ -14873,9 +14856,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getDefaultPlatformArch = void 0;
+exports.goBuild = exports.getDefaultPlatformArch = void 0;
 const os_1 = __importDefault(__nccwpck_require__(2037));
 const core = __importStar(__nccwpck_require__(2186));
+const path_1 = __importDefault(__nccwpck_require__(1017));
+const fs_1 = __importDefault(__nccwpck_require__(7147));
+const exec = __importStar(__nccwpck_require__(1514));
 const getDefaultPlatformArch = () => {
     let osPlatform = os_1.default.platform();
     switch (osPlatform) {
@@ -14895,6 +14881,43 @@ const getDefaultPlatformArch = () => {
     return `${osPlatform}/${osArch}`;
 };
 exports.getDefaultPlatformArch = getDefaultPlatformArch;
+async function goBuild(pkg, args, platform, config, output) {
+    const [osPlatform, osArch] = platform.split('/');
+    core.debug(`path = ${pkg}`);
+    if (path_1.default.basename(pkg) === '...') {
+        pkg = path_1.default.dirname(pkg);
+    }
+    const stat = fs_1.default.statSync(pkg.toString());
+    if (stat.isFile()) {
+        pkg = path_1.default.dirname(pkg);
+    }
+    else if (!stat.isDirectory()) {
+        core.error(`path ${pkg} does not exist`);
+        return '';
+    }
+    core.debug(`pkg = ${pkg}`);
+    let outputPath = '';
+    if (output) {
+        outputPath = `./.build/${osPlatform}-${osArch}/${path_1.default.basename(pkg)}`;
+        args = args.concat('-o', outputPath);
+        core.info(`Compiling ${pkg} to ${outputPath}`);
+    }
+    else {
+        core.info(`Compiling ${pkg}`);
+    }
+    const env = process.env;
+    env['GOOS'] = osPlatform;
+    env['GOARCH'] = osArch;
+    env['CGO_ENABLED'] = config.cgo_enabled ? '1' : '0';
+    env['GOPRIVATE'] = config.goprivate;
+    env['GOPROXY'] = config.goproxy;
+    env['GOSUMDB'] = config.gosumdb;
+    await exec.exec('go', args.concat(pkg), {
+        env
+    });
+    return outputPath;
+}
+exports.goBuild = goBuild;
 
 
 /***/ }),
