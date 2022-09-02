@@ -38,23 +38,23 @@ export async function goBuild(
 
   core.debug(`path = ${pkg}`)
 
-  if (path.basename(pkg) === '...') {
-    pkg = path.dirname(pkg)
-  }
-
-  const stat = fs.statSync(pkg.toString())
-  if (stat.isFile()) {
-    pkg = path.dirname(pkg)
-  } else if (!stat.isDirectory()) {
-    core.error(`path ${pkg} does not exist`)
-    return ''
-  }
-
-  core.debug(`pkg = ${pkg}`)
-
   let outputPath = ''
   if (output) {
+    if (path.basename(pkg) === '...') {
+      pkg = path.dirname(pkg)
+    }
+
+    const stat = fs.statSync(pkg.toString())
+    if (stat.isFile()) {
+      pkg = path.dirname(pkg)
+    } else if (!stat.isDirectory()) {
+      core.error(`path ${pkg} does not exist`)
+      return ''
+    }
+
     outputPath = `./.build/${osPlatform}-${osArch}/${path.basename(pkg)}`
+    core.debug(`outputPath = ${outputPath}`)
+
     args = args.concat('-o', outputPath)
     core.info(`Compiling ${pkg} to ${outputPath}`)
   } else {

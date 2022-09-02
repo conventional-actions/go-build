@@ -14884,21 +14884,21 @@ exports.getDefaultPlatformArch = getDefaultPlatformArch;
 async function goBuild(pkg, args, platform, config, output) {
     const [osPlatform, osArch] = platform.split('/');
     core.debug(`path = ${pkg}`);
-    if (path_1.default.basename(pkg) === '...') {
-        pkg = path_1.default.dirname(pkg);
-    }
-    const stat = fs_1.default.statSync(pkg.toString());
-    if (stat.isFile()) {
-        pkg = path_1.default.dirname(pkg);
-    }
-    else if (!stat.isDirectory()) {
-        core.error(`path ${pkg} does not exist`);
-        return '';
-    }
-    core.debug(`pkg = ${pkg}`);
     let outputPath = '';
     if (output) {
+        if (path_1.default.basename(pkg) === '...') {
+            pkg = path_1.default.dirname(pkg);
+        }
+        const stat = fs_1.default.statSync(pkg.toString());
+        if (stat.isFile()) {
+            pkg = path_1.default.dirname(pkg);
+        }
+        else if (!stat.isDirectory()) {
+            core.error(`path ${pkg} does not exist`);
+            return '';
+        }
         outputPath = `./.build/${osPlatform}-${osArch}/${path_1.default.basename(pkg)}`;
+        core.debug(`outputPath = ${outputPath}`);
         args = args.concat('-o', outputPath);
         core.info(`Compiling ${pkg} to ${outputPath}`);
     }
