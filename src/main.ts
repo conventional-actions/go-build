@@ -11,6 +11,8 @@ async function run(): Promise<void> {
     const config = await getConfig()
     core.debug(`config = ${JSON.stringify(config)}`)
 
+    await exec.exec('go', ['mod', 'download'])
+
     let args = ['build']
     if (config.trimpath) {
       args = args.concat('-trimpath')
@@ -74,7 +76,9 @@ async function run(): Promise<void> {
       }
     }
 
-    core.setOutput('outputs', outputs.join(','))
+    if (outputs && outputs.length) {
+      core.setOutput('outputs', outputs.join(','))
+    }
 
     let outputArtifacts: string[] = []
 
@@ -111,7 +115,9 @@ async function run(): Promise<void> {
       }
     }
 
-    core.setOutput('artifacts', outputArtifacts.join(','))
+    if (outputArtifacts && outputArtifacts.length) {
+      core.setOutput('artifacts', outputArtifacts.join(','))
+    }
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message)
   }

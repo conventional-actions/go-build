@@ -14757,6 +14757,7 @@ async function run() {
     try {
         const config = await (0, config_1.getConfig)();
         core.debug(`config = ${JSON.stringify(config)}`);
+        await exec.exec('go', ['mod', 'download']);
         let args = ['build'];
         if (config.trimpath) {
             args = args.concat('-trimpath');
@@ -14802,7 +14803,9 @@ async function run() {
                 });
             }
         }
-        core.setOutput('outputs', outputs.join(','));
+        if (outputs && outputs.length) {
+            core.setOutput('outputs', outputs.join(','));
+        }
         let outputArtifacts = [];
         for (const platform of config.platforms) {
             core.debug(`platform = ${platform}`);
@@ -14824,7 +14827,9 @@ async function run() {
                 outputArtifacts = artifacts.concat(result.artifactItems);
             }
         }
-        core.setOutput('artifacts', outputArtifacts.join(','));
+        if (outputArtifacts && outputArtifacts.length) {
+            core.setOutput('artifacts', outputArtifacts.join(','));
+        }
     }
     catch (error) {
         if (error instanceof Error)
