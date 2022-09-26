@@ -52,8 +52,7 @@ export async function getConfig(): Promise<Config> {
     cgo_enabled:
       core.getInput('cgo-enabled') === 'true' ||
       process.env['CGO_ENABLED'] === '1',
-    ldflags:
-      core.getInput('ldflags') || process.env['GO_LDFLAGS'] || '-d -s -w',
+    ldflags: core.getInput('ldflags') || process.env['GO_LDFLAGS'] || '-s -w',
     goprivate: core.getInput('goprivate') || process.env['GOPRIVATE'] || '',
     goproxy: core.getInput('goproxy') || process.env['GOPROXY'] || 'direct',
     gosumdb: core.getInput('gosumdb') || process.env['GOSUMDB'] || 'off'
