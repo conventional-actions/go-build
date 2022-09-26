@@ -26,7 +26,7 @@ inputs:
   ldflags:
     required: false
     description: 'flags to pass to the linker'
-    default: '-d -s -w'
+    default: '-s -w'
   cgo-enabled:
     required: false
     description: 'set to true to enable cgo'
