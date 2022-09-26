@@ -1,7 +1,7 @@
 import {parseMultiInput} from '@conventional-actions/toolkit'
 import * as core from '@actions/core'
 import * as glob from '@actions/glob'
-import fs from 'fs';
+import fs from 'fs'
 import {getDefaultPlatformArch} from './utils'
 
 export type Config = {
@@ -20,12 +20,12 @@ export type Config = {
 }
 
 export async function getConfig(): Promise<Config> {
-  let packageInput = core.getInput('package');
+  let packageInput = core.getInput('package')
   if (packageInput.length === 0) {
     if (fs.existsSync('./cmd')) {
-      packageInput = './cmd/*';
+      packageInput = './cmd/*'
     } else {
-      packageInput = './...';
+      packageInput = './...'
     }
   }
   const packages = parseMultiInput(packageInput)
