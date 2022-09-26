@@ -5,7 +5,6 @@ inputs:
   package:
     required: false
     description: 'package to build'
-    default: ./cmd/*
   platforms:
     required: false
     description: 'comma-separated list of platforms to build'
