@@ -43,6 +43,17 @@ inputs:
     required: false
     description: 'value of GOSUMDB'
     default: ''
+  version-package:
+    required: false
+    description: 'go package to write version to'
+    default: 'main'
+  version-variable:
+    required: false
+    description: 'the variable name to write the version to'
+    default: 'Version'
+  version:
+    required: false
+    description: 'version to write'
 outputs:
   outputs:
     description: 'list of output binaries'
