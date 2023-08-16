@@ -12,14 +12,17 @@ To use the GitHub Action, add the following to your job:
 
 ### Inputs
 
-| Name        | Default         | Description                                                |
-|-------------|-----------------|------------------------------------------------------------|
-| `package`   | `./cmd/*`       | the package to build                                       |
-| `platforms` | native platform | comma-separated list of platforms to build                 |
-| `tags`      | N/A             | comma-separated list of build tags to pass to go compiler  |
-| `buildvcs`  | `auto`          | whether to stamp binaries with version control information |
-| `buildmode` | `default`       | which kind of object file is to be built                   |
-| `trimpath`  | `true`          | remove all file system paths from the resulting executable |
+| Name               | Default         | Description                                                   |
+|--------------------|-----------------|---------------------------------------------------------------|
+| `package`          | `./cmd/*`       | the package to build                                          |
+| `platforms`        | native platform | comma-separated list of platforms to build                    |
+| `tags`             | N/A             | comma-separated list of build tags to pass to go compiler     |
+| `buildvcs`         | `auto`          | whether to stamp binaries with version control information    |
+| `buildmode`        | `default`       | which kind of object file is to be built                      |
+| `trimpath`         | `true`          | remove all file system paths from the resulting executable    |
+| `version-package`  | `main`          | go package to write version to                                |
+| `version-variable` | `Version`       | the variable name to write the version to                     |
+| `version`          | N/A             | version to write to the specified package/variable (optional) |
 
 ### Outputs
 
@@ -54,4 +57,3 @@ jobs:
 ## License
 
 The scripts and documentation in this project are released under the [MIT License](LICENSE).
-
