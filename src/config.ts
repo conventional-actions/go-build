@@ -39,7 +39,11 @@ export async function getConfig(): Promise<Config> {
   const paths = await pathsGlobber.glob()
   core.debug(`paths = ${paths}`)
 
-  return {
+  const versionPackage = core.getInput('version-package') || 'main'
+  const versionVariable = core.getInput('version-variable') || 'Version'
+  const version = core.getInput('version')
+
+  const out = {
     packages,
     paths,
     platforms: parseMultiInput(
@@ -57,4 +61,10 @@ export async function getConfig(): Promise<Config> {
     goproxy: core.getInput('goproxy') || process.env['GOPROXY'] || 'direct',
     gosumdb: core.getInput('gosumdb') || process.env['GOSUMDB'] || 'off'
   }
+
+  if (version.length !== 0) {
+    out.ldflags = `${out.ldflags} -X=${versionPackage}.${versionVariable}=${version}`
+  }
+
+  return out
 }
