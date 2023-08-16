@@ -47,23 +47,23 @@ export async function getConfig(): Promise<Config> {
     packages,
     paths,
     platforms: parseMultiInput(
-        core.getInput('platforms') || getDefaultPlatformArch()
+      core.getInput('platforms') || getDefaultPlatformArch()
     ),
     tags: parseMultiInput(core.getInput('tags') || ''),
     buildvcs: core.getInput('buildvcs') || 'auto',
     buildmode: core.getInput('buildmode') || 'default',
     trimpath: core.getInput('trimpath') !== 'false',
     cgo_enabled:
-        core.getInput('cgo-enabled') === 'true' ||
-        process.env['CGO_ENABLED'] === '1',
+      core.getInput('cgo-enabled') === 'true' ||
+      process.env['CGO_ENABLED'] === '1',
     ldflags: core.getInput('ldflags') || process.env['GO_LDFLAGS'] || '-s -w',
     goprivate: core.getInput('goprivate') || process.env['GOPRIVATE'] || '',
     goproxy: core.getInput('goproxy') || process.env['GOPROXY'] || 'direct',
-    gosumdb: core.getInput('gosumdb') || process.env['GOSUMDB'] || 'off',
+    gosumdb: core.getInput('gosumdb') || process.env['GOSUMDB'] || 'off'
   }
 
   if (version.length !== 0) {
-    out.ldflags = out.ldflags + `-X=${versionPackage}.${versionVariable}=${version}`
+    out.ldflags = `${out.ldflags} -X=${versionPackage}.${versionVariable}=${version}`
   }
 
   return out
