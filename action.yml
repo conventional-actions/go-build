@@ -60,7 +60,7 @@ outputs:
   artifacts:
     description: 'list of artifacts produced by the action'
 runs:
-  using: 'node16'
+  using: 'node20'
   main: 'dist/main/index.js'
 branding:
   icon: target
