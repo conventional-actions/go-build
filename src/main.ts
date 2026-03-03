@@ -1,7 +1,7 @@
 import * as core from '@actions/core'
 import * as glob from '@actions/glob'
 import * as exec from '@actions/exec'
-import * as artifact from '@actions/artifact'
+import {DefaultArtifactClient} from '@actions/artifact'
 import path from 'path'
 import {getConfig} from './config'
 import {goBuild} from './utils'
@@ -51,7 +51,8 @@ async function run(): Promise<void> {
       return
     }
 
-    let outputArtifacts: string[] = []
+    const artifactClient = new DefaultArtifactClient()
+    const uploadedArtifactIds: number[] = []
 
     for (const platform of config.platforms) {
       core.debug(`platform = ${platform}`)
@@ -65,29 +66,28 @@ async function run(): Promise<void> {
           implicitDescendants: false
         }
       )
-      const artifacts = await artifactsGlobber.glob()
-      core.debug(`artifacts = ${artifacts}`)
+      const artifactPaths = await artifactsGlobber.glob()
+      core.debug(`artifacts = ${artifactPaths}`)
 
-      for (const artifactPath of artifacts) {
+      for (const artifactPath of artifactPaths) {
         const filename = path.basename(artifactPath)
 
-        const result = await artifact
-          .create()
-          .uploadArtifact(
-            `${filename}_${osPlatform}_${osArch}`,
-            [artifactPath],
-            `./.build/${osPlatform}-${osArch}`,
-            {
-              continueOnError: false,
-              retentionDays: 1
-            }
-          )
-        outputArtifacts = artifacts.concat(result.artifactItems)
+        const result = await artifactClient.uploadArtifact(
+          `${filename}-${osPlatform}-${osArch}`,
+          [artifactPath],
+          `./.build/${osPlatform}-${osArch}`,
+          {
+            retentionDays: 1
+          }
+        )
+        if (result.id) {
+          uploadedArtifactIds.push(result.id)
+        }
       }
     }
 
-    if (outputArtifacts && outputArtifacts.length) {
-      core.setOutput('artifacts', outputArtifacts.join(','))
+    if (uploadedArtifactIds.length) {
+      core.setOutput('artifacts', uploadedArtifactIds.join(','))
     }
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message)
