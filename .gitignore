@@ -100,3 +100,5 @@ lib/**/*
 
 .idea/
 *.iml
+.npmrc
+.build/
