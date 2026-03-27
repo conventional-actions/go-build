@@ -60,8 +60,8 @@ outputs:
   artifacts:
     description: 'list of artifacts produced by the action'
 runs:
-  using: 'node20'
-  main: 'dist/main/index.js'
+  using: 'node24'
+  main: 'dist/index.cjs'
 branding:
   icon: target
   color: purple
